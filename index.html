@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>rest here</title>
+  <title>waystation</title>
   <style>
     * {
       box-sizing: border-box;
@@ -14,95 +14,177 @@
 
     body {
       min-height: 100vh;
-      background: radial-gradient(circle at 50% 42%, #191c22 0%, #0d0f12 58%, #07080a 100%);
+      background: #08090b;
       color: #d6d9df;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Georgia", "Times New Roman", serif;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      padding: 36px 24px;
+      padding: 40px 26px;
       text-align: center;
       cursor: pointer;
       user-select: none;
       overflow: hidden;
+      position: relative;
     }
 
-    .top-note {
-      font-size: 12px;
-      letter-spacing: 0.24em;
+    /* Subtle fog & ambient glow */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(216, 155, 98, 0.08) 0%, rgba(22, 26, 33, 0.45) 42%, rgba(8, 9, 11, 1) 85%);
+      animation: breathe 9s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+
+    /* Film grain texture */
+    .grain {
+      position: fixed;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 1;
+      background-image: radial-gradient(#ffffff 0.7px, transparent 0.7px);
+      background-size: 18px 18px;
+    }
+
+    canvas#sparks {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .top-bar, .center, .bottom-bar {
+      position: relative;
+      z-index: 2;
+    }
+
+    .top-bar {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: rgba(214, 217, 223, 0.35);
+      color: rgba(214, 217, 223, 0.32);
     }
 
     .center {
-      max-width: 440px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
+      gap: 32px;
+    }
+
+    .ember-wrap {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
     }
 
     .ember {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      background: #d89b62;
+      background: #e2a467;
       box-shadow:
-        0 0 18px rgba(216, 155, 98, 0.75),
-        0 0 48px rgba(216, 155, 98, 0.35);
-      animation: flicker 3.8s infinite ease-in-out;
+        0 0 14px rgba(226, 164, 103, 0.9),
+        0 0 36px rgba(226, 164, 103, 0.45),
+        0 0 70px rgba(226, 164, 103, 0.2);
+      animation: flicker 3.4s infinite ease-in-out;
+      transition: transform 0.3s ease;
+    }
+
+    .ember-wrap:active .ember {
+      transform: scale(1.8);
     }
 
     @keyframes flicker {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 0.85;
-      }
-      50% {
-        transform: scale(1.25);
-        opacity: 1;
-      }
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      35% { transform: scale(1.22); opacity: 1; }
+      70% { transform: scale(0.92); opacity: 0.78; }
     }
 
     .quote {
-      font-size: 20px;
-      line-height: 1.65;
+      font-size: 21px;
+      line-height: 1.7;
       font-weight: 400;
-      color: #e4e7ec;
-      transition: opacity 0.45s ease, transform 0.45s ease;
+      color: #e6e8ec;
+      letter-spacing: 0.01em;
+      transition: opacity 0.45s ease, filter 0.45s ease, transform 0.45s ease;
     }
 
     .quote.fade {
       opacity: 0;
+      filter: blur(4px);
       transform: translateY(6px);
     }
 
-    .sub {
+    .secret {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 13px;
-      color: rgba(214, 217, 223, 0.42);
+      color: rgba(226, 164, 103, 0.75);
+      min-height: 20px;
       letter-spacing: 0.06em;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
 
-    .bottom-note {
-      font-size: 12px;
-      color: rgba(214, 217, 223, 0.28);
+    .secret.show {
+      opacity: 1;
+    }
+
+    .bottom-bar {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .counter {
+      font-size: 11px;
+      color: rgba(214, 217, 223, 0.32);
+      letter-spacing: 0.14em;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(214, 217, 223, 0.24);
       letter-spacing: 0.08em;
     }
   </style>
 </head>
 <body>
-  <div class="top-note">waystation</div>
+  <div class="ambient-bg"></div>
+  <div class="grain"></div>
+  <canvas id="sparks"></canvas>
+
+  <div class="top-bar">waystation // 00</div>
 
   <div class="center">
-    <div class="ember"></div>
-    <div class="quote" id="quote">
-      Rest for a moment, traveler. The world won’t run away while you simply breathe.
+    <div class="ember-wrap" id="emberBtn" title="hold or tap">
+      <div class="ember"></div>
     </div>
-    <div class="sub" id="counter">1 / 7</div>
+    <div class="quote" id="quote"></div>
+    <div class="secret" id="secret">you found the quiet corner. :)</div>
   </div>
 
-  <div class="bottom-note">tap anywhere to drift</div>
+  <div class="bottom-bar">
+    <div class="counter" id="counter"></div>
+    <div class="hint">tap anywhere to drift</div>
+  </div>
 
   <script>
     const quotes = [
@@ -112,23 +194,102 @@
       "Your exhaustion isn’t weakness. It’s proof you’ve been carrying something heavy for a long time.",
       "Sometimes the wisest step forward is sitting in the quiet and proving nothing to anyone.",
       "Nobody is late to their own life. Everyone walks in different weather.",
-      "Stay here a little while. No noise, no rush, no roles to play."
+      "Stay here a little while. No noise, no rush, no roles to play.",
+      "Even the longest road is walked one unhurried step at a time.",
+      "You don’t have to figure out the whole map tonight. Just watch the next few yards.",
+      "Silence isn’t empty. Most of the time, it’s full of answers you couldn’t hear in the noise.",
+      "Slowing down doesn’t mean falling behind. It means choosing your own pace.",
+      "Let the cold air clear your head. Not every thought deserves an immediate reaction.",
+      "Some seasons are meant for blooming, and some are meant for quietly gathering strength.",
+      "You are allowed to disappear from the noise for an hour and just exist.",
+      "A foggy road still leads somewhere. You just don’t get to see the ending early.",
+      "Drop your shoulders. Unclench your jaw. You’re safe right here for a minute.",
+      "The things meant for you won’t require you to destroy yourself to reach them.",
+      "There is a rare kind of peace in realizing you don’t need to be everywhere at once.",
+      "Even stars take millions of years for their light to arrive. Take your time.",
+      "Rest is not a reward you earn after collapse. It’s part of the journey.",
+      "Walk slowly enough to notice the rain, the streetlights, and how far you’ve already come.",
+      "If today felt heavy, set it down at the door. Tomorrow hasn’t happened yet.",
+      "Nothing in nature rushes, yet everything gets done.",
+      "Sometimes the best thing you can do for your future is to stop fighting the present.",
+      "Keep a small fire burning inside, even when the weather outside turns gray."
     ];
 
-    let index = 0;
+    let index = Math.floor(Math.random() * quotes.length);
     const quoteEl = document.getElementById("quote");
     const counterEl = document.getElementById("counter");
+    const emberBtn = document.getElementById("emberBtn");
+    const secretEl = document.getElementById("secret");
 
-    document.body.addEventListener("click", () => {
+    function renderQuote(i) {
+      quoteEl.textContent = quotes[i];
+      const num = String(i + 1).padStart(2, "0");
+      const total = String(quotes.length).padStart(2, "0");
+      counterEl.textContent = `${num} / ${total}`;
+    }
+
+    renderQuote(index);
+
+    document.body.addEventListener("click", (e) => {
+      if (e.target.closest("#emberBtn")) return;
       quoteEl.classList.add("fade");
 
       setTimeout(() => {
         index = (index + 1) % quotes.length;
-        quoteEl.textContent = quotes[index];
-        counterEl.textContent = `${index + 1} / ${quotes.length}`;
+        renderQuote(index);
         quoteEl.classList.remove("fade");
-      }, 300);
+      }, 320);
     });
+
+    // Secret smirk when tapping the ember
+    let secretTimer;
+    emberBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      secretEl.classList.add("show");
+      clearTimeout(secretTimer);
+      secretTimer = setTimeout(() => {
+        secretEl.classList.remove("show");
+      }, 3200);
+    });
+
+    // Floating embers / dust particles
+    const canvas = document.getElementById("sparks");
+    const ctx = canvas.getContext("2d");
+    let width, height, particles;
+
+    function initCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      particles = Array.from({ length: 24 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.4 + 0.4,
+        vy: -(Math.random() * 0.25 + 0.08),
+        vx: (Math.random() - 0.5) * 0.15,
+        alpha: Math.random() * 0.45 + 0.1
+      }));
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -10) {
+          p.y = height + 10;
+          p.x = Math.random() * width;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226, 164, 103, ${p.alpha})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", initCanvas);
+    initCanvas();
+    animate();
   </script>
 </body>
 </html>
